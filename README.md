@@ -1,7 +1,7 @@
 # dotfiles — DSH + OpenCode local
 
 Setup portable de **DeepSeek Harness (perfil `web`) + servidor local de OpenCode (`127.0.0.1:4096`)**
-con el fork parcheado `dsh-opencode-provider-patched` (lee `config.models`, fallback a `mimo-v2.5-free`).
+con el fork parcheado [Opencode-Provider-fixed](https://github.com/Safestt/Opencode-Provider-fixed) (lee `config.models`, fallback a `mimo-v2.5-free`).
 
 Todo lo relacionado con auth/headers/conexión a OpenCode está intacto del plugin original.
 Solo cambió la lógica de registro de modelos desde config. Usa tu cuenta/sesión legítima local.
@@ -16,7 +16,7 @@ bash ~/dotfiles/dsh/install.sh
 El script hace, en orden:
 1. Verifica Node.js ≥ 22; verifica `opencode` CLI y lo instala (instalador oficial) si falta.
 2. Clona/actualiza dotfiles si se pasa `DOTFILES_REPO` (si ya clonaste, usa el checkout local).
-3. Instala el fork: `dsh plugin --profile web add github:<FORK_REPO>` (o copia local desde `~/deepseek-harness-opencode-Fork` mientras `FORK_REPO` siga siendo el placeholder).
+3. Instala el fork: `dsh plugin --profile web add github:Safestt/Opencode-Provider-fixed`.
 4. Symlink `~/.dsh/profiles/web/cordis.patch.yml -> ~/dotfiles/dsh/opencode-models.patch.yml` (con backup si ya existía).
 5. Recuerda `opencode auth login` (primera vez) + `opencode serve --hostname 127.0.0.1 --port 4096` antes de DSH.
 6. Arranca `dsh web --profile web` al final (salta con `SKIP_DSH_START=1`).
@@ -24,12 +24,12 @@ El script hace, en orden:
 Variantes:
 
 ```bash
-# Fork ya en GitHub:
-FORK_REPO=TU-USUARIO/dsh-opencode-provider-patched bash ~/dotfiles/dsh/install.sh
+# Otro fork (por defecto: Safestt/Opencode-Provider-fixed):
+FORK_REPO=OTRO-USUARIO/OTRO-REPO bash ~/dotfiles/dsh/install.sh
 # Otro perfil / sin arrancar DSH:
 PROFILE=otro SKIP_DSH_START=1 bash ~/dotfiles/dsh/install.sh
 # Correr desde otro lado clonando dotfiles:
-DOTFILES_REPO=git@github.com:TU-USUARIO/dotfiles.git bash /tmp/install.sh
+DOTFILES_REPO=git@github.com:Safestt/dotfiles.git bash /tmp/install.sh
 ```
 
 ## Agregar un modelo nuevo
@@ -58,22 +58,14 @@ Si quitas todos los modelos (o dejas `models:` vacío), el plugin hace fallback 
 
 - `dsh/opencode-models.patch.yml` — única fuente de verdad de modelos. Este archivo es a donde apunta el symlink `cordis.patch.yml`.
 - `dsh/install.sh` — instalador one-shot (idempotente, verifica Node/opencode, instala fork, symlink, auth/serve, arranca DSH).
-- Fork con fuente parcheada (aún local): `~/deepseek-harness-opencode-Fork/` — `src/adapter.ts` + `src/index.ts` corregidos, `lib/` regenerado con build, `typecheck` y `test` (42 tests) verdes.
+- Fork con fuente parcheada: https://github.com/Safestt/Opencode-Provider-fixed — `src/adapter.ts` + `src/index.ts` corregidos, `lib/` regenerado con build, `typecheck` y `test` (42 tests) verdes.
 
-## Subir el fork a GitHub (pendiente, sin `gh` aquí)
+## Fork en GitHub (ya creado)
 
-```bash
-cd ~/deepseek-harness-opencode-Fork
-git init -b main
-git add -A
-git commit -m "patched fork: config.models works with fallback (upstream goku54477/dsh-opencode-provider v0.1.0)"
-# crea el repo vacío en github.com (TU-USUARIO/dsh-opencode-provider-patched) y luego:
-git remote add origin git@github.com:TU-USUARIO/dsh-opencode-provider-patched.git
-git push -u origin main
-```
+https://github.com/Safestt/Opencode-Provider-fixed
 
-Luego el plugin queda instalable con:
+El plugin se instala con:
 
 ```bash
-dsh plugin --profile web add github:TU-USUARIO/dsh-opencode-provider-patched
+dsh plugin --profile web add github:Safestt/Opencode-Provider-fixed
 ```

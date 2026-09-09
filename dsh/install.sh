@@ -6,14 +6,14 @@
 #
 # Env vars opcionales:
 #   PROFILE=web
-#   FORK_REPO="MI-USUARIO/dsh-opencode-provider-patched"  # github:<repo> del fork
-#   LOCAL_FORK="$HOME/deepseek-harness-opencode-Fork"     # fallback local si el fork aún no está en GitHub
+#   FORK_REPO="Safestt/Opencode-Provider-fixed"  # github:<usuario>/<repo> del fork
+#   USE_LOCAL_FORK=1             # instala desde $LOCAL_FORK en vez de GitHub (para pruebas)
 #   DOTFILES_REPO=""        # si está seteado y corres el script fuera del clone: git clone/pull a ~/dotfiles
 #   SKIP_DSH_START=""       # si está seteado (cualquier valor): no arranca `dsh web` al final
 set -euo pipefail
 
 PROFILE="${PROFILE:-web}"
-FORK_REPO="${FORK_REPO:-MI-USUARIO/dsh-opencode-provider-patched}"
+FORK_REPO="${FORK_REPO:-Safestt/Opencode-Provider-fixed}"
 LOCAL_FORK="${LOCAL_FORK:-$HOME/deepseek-harness-opencode-Fork}"
 DOTFILES_REPO="${DOTFILES_REPO:-}"
 SKIP_DSH_START="${SKIP_DSH_START:-}"
@@ -71,11 +71,8 @@ if [ ! -f "$MODELS_SRC" ]; then
 fi
 
 echo "==> [3/6] Plugin forkeado"
-if [ "$FORK_REPO" != "MI-USUARIO/dsh-opencode-provider-patched" ]; then
-  echo "    dsh plugin --profile $PROFILE add github:$FORK_REPO"
-  dsh plugin --profile "$PROFILE" add "github:$FORK_REPO"
-elif [ -d "$LOCAL_FORK/lib" ]; then
-  echo "    FORK_REPO aún es placeholder; instalando desde fork local: $LOCAL_FORK"
+if [ "${USE_LOCAL_FORK:-}" = "1" ] && [ -d "$LOCAL_FORK/lib" ]; then
+  echo "    USE_LOCAL_FORK=1; instalando desde fork local: $LOCAL_FORK"
   DEST="$HOME/.dsh/profiles/$PROFILE/node_modules/dsh-opencode-provider"
   mkdir -p "$DEST/lib/types"
   cp "$LOCAL_FORK/CHANGELOG.md" "$LOCAL_FORK/LICENSE" "$LOCAL_FORK/README.md" \
@@ -83,10 +80,10 @@ elif [ -d "$LOCAL_FORK/lib" ]; then
      "$LOCAL_FORK/package.json" "$DEST/" 2>/dev/null || true
   cp "$LOCAL_FORK/lib/index.mjs" "$LOCAL_FORK/lib/invariant.mjs" "$DEST/lib/"
   cp "$LOCAL_FORK/lib/types/"* "$DEST/lib/types/" 2>/dev/null || true
-  echo "    Copiado a $DEST. Cuando subas el fork a GitHub, re-corre con FORK_REPO=TU-USUARIO/dsh-opencode-provider-patched"
+  echo "    Copiado a $DEST (instalación local)."
 else
-  echo "ERROR: configura FORK_REPO=TU-USUARIO/dsh-opencode-provider-patched o copia el fork local a $LOCAL_FORK." >&2
-  exit 1
+  echo "    dsh plugin --profile $PROFILE add github:$FORK_REPO"
+  dsh plugin --profile "$PROFILE" add "github:$FORK_REPO"
 fi
 
 echo "==> [4/6] Symlink cordis.patch.yml -> models YAML"
